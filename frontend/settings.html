@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updatedUser.department = departmentSelect.value;
 
     const endpoint = user.role === 'student'
-      ? 'https://attendace-zjzu.onrender.com/api/student/update'
-      : 'https://attendace-zjzu.onrender.com/api/teacher/update';
+      ? 'https://attendace-final.onrender.com/api/student/update'
+      : 'https://attendace-final.onrender.com/api/teacher/update';
 
     try {
       const res = await fetch(endpoint, {

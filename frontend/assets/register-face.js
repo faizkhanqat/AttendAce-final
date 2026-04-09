@@ -156,7 +156,7 @@ faceapi.matchDimensions(canvas, displaySize);
 
 // ----------------- Face Status Check -----------------
 async function checkFaceStatus() {
-  const API_URL = 'https://attendace-zjzu.onrender.com';
+  const API_URL = 'https://attendace-final.onrender.com';
   const token = localStorage.getItem('token');
 
   if (!token) {
@@ -213,7 +213,7 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
     return;
   }
 
-  const API_URL = 'https://attendace-zjzu.onrender.com';
+  const API_URL = 'https://attendace-final.onrender.com';
   const token = localStorage.getItem('token');
 
   try {

@@ -59,7 +59,7 @@ classSelect.addEventListener('change', async () => {
   const classId = classSelect.value;
   if (!classId) return;
   try {
-    const res = await fetch(`https://attendace-zjzu.onrender.com/api/teacher/classes`, {
+    const res = await fetch(`https://attendace-final.onrender.com/api/teacher/classes`, {
       headers: { Authorization: 'Bearer ' + token },
     });
     if (!res.ok) throw new Error('Failed to fetch classes');
@@ -77,8 +77,8 @@ activationBtn.onclick = async () => {
 
   const isActive = activationBtn.innerText === 'Deactivate';
   const url = isActive
-    ? `https://attendace-zjzu.onrender.com/api/teacher/classes/deactivate`
-    : `https://attendace-zjzu.onrender.com/api/teacher/classes/activate`;
+    ? `https://attendace-final.onrender.com/api/teacher/classes/deactivate`
+    : `https://attendace-final.onrender.com/api/teacher/classes/activate`;
 
   const body = isActive ? { class_id: classId } : { class_id: classId, minutes: 15 };
 
@@ -98,7 +98,7 @@ activationBtn.onclick = async () => {
 /* -------------------- FETCH CLASSES -------------------- */
 async function fetchClasses() {
   try {
-    const res = await fetch('https://attendace-zjzu.onrender.com/api/teacher/classes', {
+    const res = await fetch('https://attendace-final.onrender.com/api/teacher/classes', {
       headers: { Authorization: 'Bearer ' + token },
     });
     if (!res.ok) throw new Error('Failed to fetch classes');
@@ -139,7 +139,7 @@ function startCountdown(seconds) {
 
 async function generateDynamicQRCode(classId) {
   try {
-    const res = await fetch(`https://attendace-zjzu.onrender.com/api/qr/dynamic?class_id=${classId}`, {
+    const res = await fetch(`https://attendace-final.onrender.com/api/qr/dynamic?class_id=${classId}`, {
       headers: { Authorization: 'Bearer ' + token },
     });
     if (!res.ok) throw new Error('Failed to generate QR');

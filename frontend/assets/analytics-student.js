@@ -1,5 +1,5 @@
 const token = localStorage.getItem('token');
-const API_URL = 'https://attendace-zjzu.onrender.com';
+const API_URL = 'https://attendace-final.onrender.com';
 
 if (!token) {
   alert('You must be logged in');

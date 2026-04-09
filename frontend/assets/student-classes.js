@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchMyClasses() {
   try {
-    const res = await fetch('https://attendace-zjzu.onrender.com/api/student/classes/my', {
+    const res = await fetch('https://attendace-final.onrender.com/api/student/classes/my', {
       headers: { Authorization: 'Bearer ' + token }
     });
 
@@ -89,7 +89,7 @@ classes.forEach(cls => {
 
 async function fetchAvailableClasses() {
   try {
-    const res = await fetch('https://attendace-zjzu.onrender.com/api/student/classes', {
+    const res = await fetch('https://attendace-final.onrender.com/api/student/classes', {
       headers: { Authorization: 'Bearer ' + token }
     });
 
@@ -151,7 +151,7 @@ function renderAvailableClasses(classes) {
 async function enroll(classId, className, teacherName) {
   try {
     const res = await fetch(
-      'https://attendace-zjzu.onrender.com/api/student/classes/enroll',
+      'https://attendace-final.onrender.com/api/student/classes/enroll',
       {
         method: 'POST',
         headers: {
@@ -174,7 +174,7 @@ async function enroll(classId, className, teacherName) {
 async function unenroll(classId, btn) {
   try {
     const res = await fetch(
-      'https://attendace-zjzu.onrender.com/api/student/classes/unenroll',
+      'https://attendace-final.onrender.com/api/student/classes/unenroll',
       {
         method: 'POST',
         headers: {

@@ -511,7 +511,7 @@ Kevin Hamad & AttendAce Team 🚀`,
                 Need help? We're always here for you — just reply to this email.
               </p>
 
-              <a href="https://attendace-zjzu.onrender.com/login.html" style="display:inline-block; background:#2d6a4f; color:#fff; text-decoration:none; padding:12px 24px; border-radius:8px; font-size:16px; margin-bottom:20px;">
+              <a href="https://attendace-final.onrender.com/login.html" style="display:inline-block; background:#2d6a4f; color:#fff; text-decoration:none; padding:12px 24px; border-radius:8px; font-size:16px; margin-bottom:20px;">
                 Explore AttendAce
               </a>
 

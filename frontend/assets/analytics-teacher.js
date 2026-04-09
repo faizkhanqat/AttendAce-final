@@ -1,5 +1,5 @@
 const token = localStorage.getItem('token');
-const API_URL = 'https://attendace-zjzu.onrender.com';
+const API_URL = 'https://attendace-final.onrender.com';
 
 const classSelect = document.getElementById('classSelect');
 const exportCsvBtn = document.querySelector('.export-csv-btn');
