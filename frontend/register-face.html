@@ -1,0 +1,160 @@
+<!-- register-face.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Update Face | AttendAce</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Shared UI Styles -->
+  <link rel="stylesheet" href="styles2.css">
+</head>
+
+<body class="font-sans max-w-[420px] mx-auto overflow-y-auto relative z-10">
+
+<!-- GAMING BACKGROUND -->
+<div id="bg-anim"></div>
+
+<!-- CLICK SOUND -->
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
+
+<!-- HEADER -->
+<header class="p-4 flex justify-between items-center reveal">
+  <h1 class="font-black text-lg tracking-tight">AttendAce</h1>
+  <button id="themeToggle" class="px-4 py-2 rounded-full glass text-xs font-bold press min-w-[80px]">
+    NOX
+  </button>
+</header>
+
+<!-- SCAN CARD -->
+<section class="px-5 mt-4 reveal">
+  <div class="glass p-6 relative overflow-hidden text-center">
+
+    <h2 class="text-2xl font-black mb-1">Register / Update Face</h2>
+<p class="text-sm text-[var(--muted)] mb-4">
+  Keep your face steady inside the frame
+</p>
+
+    <!-- QR READER -->
+    <!-- FACE CAMERA -->
+<div
+  id="video-container"
+  class="w-full relative rounded-xl overflow-hidden border-4 border-[var(--accent)] bg-black aspect-[4/3]"
+>
+  <video
+    id="video"
+    autoplay
+    muted
+    playsinline
+    class="w-full h-full object-cover"
+  ></video>
+
+  <canvas
+    id="overlay"
+    class="absolute top-0 left-0 w-full h-full"
+  ></canvas>
+</div>
+
+<p id="status" class="text-sm text-[var(--muted)] mt-3 font-semibold">
+  Initializing...
+</p>
+
+<p
+  id="faceStatusBox"
+  class="mt-3 px-3 py-2 rounded-xl text-white text-sm inline-block"
+></p>
+
+<p
+  id="matchStatusBox"
+  class="mt-2 px-3 py-2 rounded-xl text-white text-sm inline-block"
+></p>
+    <!-- ACTIONS -->
+    <div class="mt-6 flex flex-col gap-3">
+  <button
+    id="registerBtn"
+    class="menu-btn press w-full h-[60px] rounded-xl hidden">
+    Update Face
+  </button>
+
+  <button class="menu-btn group w-full rounded-xl p-4 mt-6 flex flex-col items-center"
+              onclick="window.location.href='student-dashboard.html'">
+        <!-- Main row: Icon + Button name -->
+        <div class="flex items-center gap-3">
+      <img src="assets/back.svg" alt="Developer Support" class="scan-icon w-6 h-6 transition-all duration-300">    
+      <div class="text-lg">Return to Dashboard</div>
+        </div>
+      </button>
+</div>
+
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="assets/register-face.js"></script>
+
+<script>
+
+// ⚡ Apply mode instantly (before render)
+const cachedUser = JSON.parse(localStorage.getItem('user'));
+
+if (cachedUser?.mode === 'gaming') {
+  document.body.classList.add('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'LUMOS';
+} else if (cachedUser?.mode === 'official') {
+  document.body.classList.remove('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'NOX';
+}
+
+if (cachedUser?.mode === 'gaming') {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(1)';
+  });
+} else {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(0)';
+  });
+}
+
+/* CLICK SOUND */
+const clickSound = document.getElementById('clickSound');
+
+// Play click sound for all buttons and links
+document.querySelectorAll('button, a').forEach(el => {
+  el.addEventListener('click', () => {
+    clickSound.currentTime = 0; // rewind in case still playing
+    clickSound.play().catch(err => {
+      console.log("Click sound blocked by browser:", err);
+    });
+  });
+});
+
+/* THEME TOGGLE */
+const toggle = document.getElementById('themeToggle');
+toggle.onclick = () => {
+  document.body.classList.toggle('gaming');
+  toggle.innerText = document.body.classList.contains('gaming')
+    ? 'LUMOS'
+    : 'NOX';
+};
+
+/* REVEAL ANIMATION */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('show');
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

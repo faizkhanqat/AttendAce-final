@@ -1,0 +1,241 @@
+<!--settings.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Developers - AttendAce</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Shared UI Styles -->
+  <link rel="stylesheet" href="styles2.css">
+</head>
+
+<body class="font-sans max-w-[420px] mx-auto overflow-y-auto relative z-10">
+
+<!-- GAMING BACKGROUND -->
+<div id="bg-anim"></div>
+
+<!-- CLICK SOUND -->
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
+
+<!-- HEADER -->
+<header class="p-4 flex justify-between items-center reveal">
+  <h1 class="font-black text-lg tracking-tight">AttendAce</h1>
+  <button id="themeToggle" class="px-4 py-2 rounded-full glass text-xs font-bold press min-w-[80px]">
+    NOX
+  </button>
+</header>
+
+<section class="px-5 mt-4 reveal">
+  <div class="glass p-6 relative overflow-hidden text-center">
+
+    <!-- Settings Page Title -->
+    <h2 class="text-2xl font-black mb-4">Settings</h2>
+
+    <!-- SETTINGS FORM (from file 2) -->
+    <form id="settingsForm" class="details-form flex flex-col gap-6">
+      <div class="form-group">
+        <label for="fullName" class="block text-lg font-semibold mb-1">Full Name</label>
+        <input type="text" id="fullName" class="glass w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400" required>
+      </div>
+
+      <div class="form-group">
+        <label for="userId" class="block text-lg font-semibold mb-1">ID</label>
+        <input type="text" id="userId" class="glass w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="block text-lg font-semibold mb-1">Email Address</label>
+        <input type="email" id="email" class="glass w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400" required>
+      </div>
+
+      <div class="form-group" id="departmentGroup">
+        <label for="department" class="block text-lg font-semibold mb-1">Department</label>
+        <select id="department" class="glass w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400" required>
+            <option value="CSE">CSE</option>
+          <option value="ECE">ECE</option>
+          <option value="EE">EE</option>
+          <option value="ME">ME</option>
+          <option value="CIV">CIV</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="mode" class="block text-lg font-semibold mb-1">Mode</label>
+        <select id="mode" class="glass w-full px-4 py-3 text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400" required>
+            <option value="gaming">Dark</option>
+          <option value="official">Light</option>
+        </select>
+      </div>
+    </form>
+
+    <!-- BUTTONS -->
+    <div class="menu-options flex flex-col gap-3 mt-4">
+      <!-- <button type="button" class="menu-btn primary" id="saveBtn">✔️ Save Changes</button> -->
+      
+      <button class="menu-btn group w-full border gray-800 mt-10 rounded-xl p-4 flex flex-col items-center" id="saveBtn">
+        <!-- Main row: Icon + Button name -->
+        <div class="flex items-center gap-3">
+      <img src="assets/save.svg" alt="Developer Support" class="scan-icon w-6 h-6 transition-all duration-300">    
+      <div class="text-lg">Save Changes</div>
+        </div>
+      </button>
+      
+      <button id = "returnDashboardBtn" class="menu-btn group w-full border gray-800 mt-4 rounded-xl p-4 flex flex-col items-center">
+        <!-- Main row: Icon + Button name -->
+        <div class="flex items-center gap-3">
+      <img src="assets/back.svg" alt="Developer Support" class="scan-icon w-6 h-6 transition-all duration-300">    
+      <div class="text-lg">Return to Dashboard</div>
+        </div>
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<script>
+
+// ⚡ Apply mode instantly (before render)
+const cachedUser = JSON.parse(localStorage.getItem('user'));
+
+if (cachedUser?.mode === 'gaming') {
+  document.body.classList.add('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'LUMOS';
+} else if (cachedUser?.mode === 'official') {
+  document.body.classList.remove('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'NOX';
+}
+
+if (cachedUser?.mode === 'gaming') {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(1)';
+  });
+} else {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(0)';
+  });
+}
+
+// -------------------------------
+// CLICK SOUND
+// -------------------------------
+const clickSound = document.getElementById('clickSound');
+document.querySelectorAll('button, a').forEach(el => {
+  el.addEventListener('click', () => {
+    clickSound.currentTime = 0;
+    clickSound.play().catch(err => console.log("Click sound blocked:", err));
+  });
+});
+
+// -------------------------------
+// THEME TOGGLE
+// -------------------------------
+const toggle = document.getElementById('themeToggle');
+toggle.onclick = () => {
+  document.body.classList.toggle('gaming');
+  toggle.innerText = document.body.classList.contains('gaming') ? 'LUMOS' : 'NOX';
+};
+
+// -------------------------------
+// REVEAL ANIMATION
+// -------------------------------
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// -------------------------------
+// INIT USER & FORM
+// -------------------------------
+const token = localStorage.getItem('token');
+let user = JSON.parse(localStorage.getItem('user'));
+
+if (!token || !user) window.location.href = 'login.html';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Set mode
+  document.body.classList.remove('gaming');
+  if (user.mode === 'gaming') document.body.classList.add('gaming');
+
+  // Fill form
+  document.getElementById('fullName').value = user.name || '';
+  document.getElementById('userId').value = user.id || '';
+  document.getElementById('email').value = user.email || '';
+  document.getElementById('mode').value = user.mode || 'official';
+
+  const departmentGroup = document.getElementById('departmentGroup');
+  const departmentSelect = document.getElementById('department');
+
+  departmentSelect.value = user.department || '';
+
+  // -------------------------------
+  // SAVE CHANGES
+  // -------------------------------
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const updatedUser = {
+      name: document.getElementById('fullName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      gender: user.gender || null,
+      dob: user.dob || null,
+      mode: document.getElementById('mode').value
+    };
+    updatedUser.department = departmentSelect.value;
+
+    const endpoint = user.role === 'student'
+      ? 'https://attendace-zjzu.onrender.com/api/student/update'
+      : 'https://attendace-zjzu.onrender.com/api/teacher/update';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token 
+        },
+        body: JSON.stringify(updatedUser),
+      });
+      if (!res.ok) throw new Error('Update failed');
+      const data = await res.json();
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        document.body.classList.remove('gaming');
+        if (data.user.mode === 'gaming') document.body.classList.add('gaming');
+      }
+      alert(data.message || 'Profile updated successfully');
+    } catch (err) {
+      console.error('Update error:', err);
+      alert('Could not update profile');
+    }
+  });
+
+
+  document.getElementById('returnDashboardBtn').addEventListener('click', () => {
+  if (user.role === 'teacher') {
+    window.location.href = 'teacher-dashboard.html';
+  } else {
+    window.location.href = 'student-dashboard.html';
+  }
+});
+
+  // -------------------------------
+  // LOGOUT
+  // -------------------------------
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+});
+</script>
+</body>
+</html>

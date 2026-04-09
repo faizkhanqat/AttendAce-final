@@ -1,0 +1,132 @@
+
+
+
+
+<!-- student-classes.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance Records - AttendAce</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Shared UI Styles -->
+  <link rel="stylesheet" href="styles2.css">
+</head>
+
+<body class="font-sans max-w-[420px] mx-auto overflow-y-auto relative z-10">
+
+  <!-- GAMING BACKGROUND -->
+  <div id="bg-anim"></div>
+
+  <!-- CLICK SOUND -->
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
+
+  <!-- HEADER -->
+  <header class="p-4 flex justify-between items-center reveal">
+    <h1 class="font-black text-lg tracking-tight">AttendAce</h1>
+    <button id="themeToggle" class="px-4 py-2 rounded-full glass text-xs font-bold press min-w-[80px]">
+      NOX
+    </button>
+  </header>
+
+  <section class="px-5 mt-4 reveal">
+    <div class="glass p-6 relative overflow-hidden text-center">
+
+      <h2 class="text-2xl font-black mb-4">Attendance Records</h2>
+
+      <!-- Error -->
+      <div id="errorMsg" class="text-red-500 text-sm mb-4"></div>
+
+      
+
+  <div class="mt-4 flex items-center gap-3">
+  <label for="classSelect" class="font-medium">Select Class:</label>
+  <select id="classSelect" class="rounded-lg p-2 border border-gray-300">
+    <option value="">-- Choose a class --</option>
+    <!-- Options will be populated dynamically -->
+  </select>
+</div>
+
+      <button id="exportCsvBtn" class="export-csv-btn menu-btn group w-full rounded-xl p-4 mt-6 flex flex-col items-center">Export CSV</button>
+
+      <button class="menu-btn group w-full rounded-xl p-4 mt-6 flex flex-col items-center"
+              onclick="window.location.href='teacher-dashboard.html'">
+        <!-- Main row: Icon + Button name -->
+        <div class="flex items-center gap-3">
+      <img src="assets/back.svg" alt="Developer Support" class="scan-icon w-6 h-6 transition-all duration-300">    
+      <div class="text-lg">Return to Dashboard</div>
+        </div>
+      </button>
+
+    </div>
+  </div>
+
+<script>
+
+// ⚡ Apply mode instantly (before render)
+const cachedUser = JSON.parse(localStorage.getItem('user'));
+
+if (cachedUser?.mode === 'gaming') {
+  document.body.classList.add('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'LUMOS';
+} else if (cachedUser?.mode === 'official') {
+  document.body.classList.remove('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'NOX';
+}
+
+if (cachedUser?.mode === 'gaming') {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(1)';
+  });
+} else {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(0)';
+  });
+}
+
+/* CLICK SOUND */
+const clickSound = document.getElementById('clickSound');
+
+// Play click sound for all buttons and links
+document.querySelectorAll('button, a').forEach(el => {
+  el.addEventListener('click', () => {
+    clickSound.currentTime = 0; // rewind in case still playing
+    clickSound.play().catch(err => {
+      console.log("Click sound blocked by browser:", err);
+    });
+  });
+});
+
+/* THEME TOGGLE */
+const toggle = document.getElementById('themeToggle');
+toggle.onclick = () => {
+  document.body.classList.toggle('gaming');
+  toggle.innerText = document.body.classList.contains('gaming')
+    ? 'LUMOS'
+    : 'NOX';
+};
+
+/* REVEAL ANIMATION */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('show');
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+</script>
+<script src="assets/analytics-teacher.js"></script>
+</body>
+</html>

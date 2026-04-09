@@ -1,0 +1,205 @@
+<!-- contact-developers.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Developers - AttendAce</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Shared UI Styles -->
+  <link rel="stylesheet" href="styles2.css">
+</head>
+
+<body class="font-sans max-w-[420px] mx-auto overflow-y-auto relative z-10">
+
+<!-- GAMING BACKGROUND -->
+<div id="bg-anim"></div>
+
+<!-- CLICK SOUND -->
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
+
+<!-- HEADER -->
+<header class="p-4 flex justify-between items-center reveal">
+  <h1 class="font-black text-lg tracking-tight">AttendAce</h1>
+  <button id="themeToggle" class="px-4 py-2 rounded-full glass text-xs font-bold press min-w-[80px]">
+    NOX
+  </button>
+</header>
+
+<section class="px-5 mt-4 reveal">
+  <div class="glass p-6 relative overflow-hidden text-center">
+
+    <h2 class="text-2xl font-black mb-1">Contact Developers</h2>
+
+    <!-- ⭐ Star rating -->
+    <div id="starRating" class="mb-4">
+      <span data-star="1" class="cursor-pointer text-3xl mr-2">☆</span>
+      <span data-star="2" class="cursor-pointer text-3xl mr-2">☆</span>
+      <span data-star="3" class="cursor-pointer text-3xl mr-2">☆</span>
+      <span data-star="4" class="cursor-pointer text-3xl mr-2">☆</span>
+      <span data-star="5" class="cursor-pointer text-3xl">☆</span>
+    </div>
+
+<textarea id="feedbackMessage" 
+          placeholder="Optional: Type your message here (max 500 characters)"
+          class="w-full p-4 mb-6 rounded-lg border
+                 bg-[var(--card)] text-[var(--text)] 
+                 placeholder:text-[var(--muted)]"></textarea>
+    <button id="sendBtn" class="w-full py-3 rounded-lg bg-[var(--accent)] text-white font-bold">
+      Send Feedback
+    </button>
+
+    <div id="statusMessage" class="mt-2 text-center text-sm text-[var(--muted)]"></div>
+
+    <button id = "returnDashboardBtn" class="menu-btn group w-full rounded-xl mt-6 p-4 flex flex-col items-center">
+        <!-- Main row: Icon + Button name -->
+        <div class="flex items-center gap-3">
+      <img src="assets/back.svg" alt="Developer Support" class="scan-icon w-6 h-6 transition-all duration-300">    
+      <div class="text-lg">Return to Dashboard</div>
+        </div>
+      </button>
+  </div>
+</section>
+
+<script>
+
+// ⚡ Apply mode instantly (before render)
+const cachedUser = JSON.parse(localStorage.getItem('user'));
+
+if (cachedUser?.mode === 'gaming') {
+  document.body.classList.add('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'LUMOS';
+} else if (cachedUser?.mode === 'official') {
+  document.body.classList.remove('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'NOX';
+}
+
+if (cachedUser?.mode === 'gaming') {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(1)';
+  });
+} else {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(0)';
+  });
+}
+
+/* CLICK SOUND */
+const clickSound = document.getElementById('clickSound');
+
+// Play click sound for all buttons and links
+document.querySelectorAll('button, a').forEach(el => {
+  el.addEventListener('click', () => {
+    clickSound.currentTime = 0; // rewind in case still playing
+    clickSound.play().catch(err => {
+      console.log("Click sound blocked by browser:", err);
+    });
+  });
+});
+
+/* THEME TOGGLE */
+const toggle = document.getElementById('themeToggle');
+toggle.onclick = () => {
+  document.body.classList.toggle('gaming');
+  toggle.innerText = document.body.classList.contains('gaming')
+    ? 'LUMOS'
+    : 'NOX';
+};
+
+/* REVEAL ANIMATION */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('show');
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user'));
+
+const returnBtn = document.getElementById('returnDashboardBtn');
+returnBtn.addEventListener('click', () => {
+  if (user.role === 'teacher') {
+    window.location.href = 'teacher-dashboard.html';
+  } else {
+    window.location.href = 'student-dashboard.html';
+  }
+});
+
+// Redirect to login if not logged in
+if (!token || !user) {
+  window.location.href = 'login.html';
+}
+
+const sendBtn = document.getElementById('sendBtn');
+const feedbackMessage = document.getElementById('feedbackMessage');
+const statusMessage = document.getElementById('statusMessage');
+
+let selectedRating = 0;
+const stars = document.querySelectorAll('#starRating span');
+
+stars.forEach(star => {
+  star.addEventListener('click', () => {
+    selectedRating = star.dataset.star;
+    stars.forEach(s => {
+      s.textContent = s.dataset.star <= selectedRating ? '⭐' : '☆';
+    });
+  });
+});
+
+sendBtn.addEventListener('click', async () => {
+  const message = feedbackMessage.value.trim();
+
+  if (!selectedRating) {
+    statusMessage.textContent = 'Please select a star rating.';
+    return;
+  }
+
+  if (message.length > 500) {
+    statusMessage.textContent = 'Message too long. Max 500 characters allowed.';
+    return;
+  }
+
+  sendBtn.disabled = true;
+  statusMessage.textContent = 'Sending...';
+
+  try {
+    const response = await fetch('/api/contact/contact-developers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        rating: selectedRating,
+        message
+      })
+    });
+
+
+    const data = await response.json();
+    statusMessage.textContent = response.ok ? data.message : (data.message || 'Error sending feedback.');
+    if (response.ok) feedbackMessage.value = '';
+  } catch (err) {
+    console.error(err);
+    statusMessage.textContent = 'Server error. Please try again later.';
+  } finally {
+    sendBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

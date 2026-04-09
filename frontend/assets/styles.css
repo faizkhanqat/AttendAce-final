@@ -1,0 +1,51 @@
+:root {
+  --bg: 220 25% 96%;
+  --fg: 222 47% 11%;
+  --card: 0 0% 100%;
+  --muted: 220 14% 96%;
+  --muted-fg: 215 16% 47%;
+  --primary: 221 83% 53%;
+  --border: 220 13% 91%;
+  --radius: 1rem;
+}
+
+html {
+  font-family: Inter, system-ui, sans-serif;
+  color: hsl(var(--fg));
+}
+
+.dashboard-container {
+  position: relative;
+  z-index: 1;
+}
+
+body {
+  margin: 0;
+}
+
+.bg-dashboard {
+  min-height: 100vh;
+  background:
+    radial-gradient(700px at top, rgba(250,240,220,0.35), transparent 70%),
+    url('image.png') no-repeat center / cover;
+}
+
+
+.card {
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px -25px rgba(0,0,0,.35);
+}
+
+.menu-item {
+  height: 110px;
+  border-radius: 1.25rem;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 25px 50px -30px rgba(0,0,0,.45);
+}
