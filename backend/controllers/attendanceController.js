@@ -455,3 +455,43 @@ exports.getClassAttendancePreview = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+/**
+ * Manual Override by Teacher
+ */
+exports.manualOverride = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const { student_id, class_id } = req.body;
+
+    if (!student_id || !class_id) {
+      return res.status(400).json({ message: 'Student ID and Class ID are required' });
+    }
+
+    // 1. Verify class belongs to teacher
+    const [classCheck] = await pool.query(
+      'SELECT id FROM classes WHERE id = ? AND teacher_id = ? LIMIT 1',
+      [class_id, teacherId]
+    );
+    if (!classCheck.length) return res.status(403).json({ message: 'Unauthorized' });
+
+    // 2. Prevent duplicate same day
+    const [existing] = await pool.query(
+      'SELECT id FROM attendance WHERE student_id = ? AND class_id = ? AND DATE(timestamp) = CURDATE()',
+      [student_id, class_id]
+    );
+    if (existing.length > 0) return res.status(409).json({ message: 'Already marked today' });
+
+    // 3. Mark attendance manually
+    await pool.query(
+      `INSERT INTO attendance (student_id, class_id, status, method, timestamp, conducted_on) 
+       VALUES (?, ?, ?, ?, NOW(), CURRENT_DATE())`,
+      [student_id, class_id, 'present', 'manual']
+    );
+
+    return res.json({ message: 'Attendance marked successfully!' });
+  } catch (err) {
+    console.error('❌ Manual Override Error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

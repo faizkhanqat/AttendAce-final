@@ -1,0 +1,200 @@
+
+
+<!-- teacher-manual-override.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual Attendance Marking - AttendAce</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Shared UI Styles -->
+  <link rel="stylesheet" href="styles2.css">
+</head>
+
+<body class="font-sans max-w-[420px] mx-auto overflow-y-auto relative z-10">
+
+  <!-- GAMING BACKGROUND -->
+  <div id="bg-anim"></div>
+
+  <!-- CLICK SOUND -->
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
+
+  <!-- HEADER -->
+  <header class="p-4 flex justify-between items-center reveal">
+    <h1 class="font-black text-lg tracking-tight">AttendAce</h1>
+    <button id="themeToggle" class="px-4 py-2 rounded-full glass text-xs font-bold press min-w-[80px]">
+      NOX
+    </button>
+  </header>
+
+<section class="px-5 mt-4 reveal">
+  <div class="glass p-6 relative overflow-hidden">
+    <h2 class="text-2xl font-black mb-4 text-center">Manual Override</h2>
+
+    <div id="statusMsg" class="text-sm mb-4 text-center hidden p-2 rounded-lg"></div>
+
+    <div class="mb-4">
+      <label class="block text-xs font-bold uppercase tracking-wider mb-2 opacity-70">Step 1: Select Class</label>
+      <select id="classSelect" class="w-full bg-black/20 border border-white/10 rounded-xl p-3 outline-none focus:border-white/30 transition-all">
+        <option value="">-- Choose a class --</option>
+      </select>
+    </div>
+
+    <div class="mb-6">
+      <label class="block text-xs font-bold uppercase tracking-wider mb-2 opacity-70">Step 2: Enter Student ID</label>
+      <input type="text" id="studentIdInput" placeholder="Enter Roll No or ID" 
+             class="w-full bg-black/20 border border-white/10 rounded-xl p-3 outline-none focus:border-white/30 transition-all mb-4">
+      
+      <button id="markBtn" class="export-csv-btn menu-btn group w-full rounded-xl p-4 flex flex-col items-center">
+        MARK AS PRESENT
+      </button>
+    </div>
+
+    <button class="menu-btn group w-full rounded-xl p-4 flex flex-col items-center"
+            onclick="window.location.href='teacher-dashboard.html'">
+      <div class="flex items-center gap-3">
+        <img src="assets/back.svg" alt="Back" class="scan-icon w-6 h-6">    
+        <div class="text-lg">Dashboard</div>
+      </div>
+    </button>
+  </div>
+</section>
+
+<script>
+// --- LOGIC FOR MANUAL OVERRIDE ---
+const classSelect = document.getElementById('classSelect');
+const studentInput = document.getElementById('studentIdInput');
+const markBtn = document.getElementById('markBtn');
+const statusMsg = document.getElementById('statusMsg');
+
+// Load classes on init
+async function loadTeacherClasses() {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch('/api/attendance/analytics/teacher', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.byClass) {
+      data.byClass.forEach(cls => {
+        const opt = document.createElement('option');
+        opt.value = cls.class_id;
+        opt.innerText = cls.name;
+        classSelect.appendChild(opt);
+      });
+    }
+  } catch (err) { console.error("Error loading classes", err); }
+}
+
+markBtn.onclick = async () => {
+  const classId = classSelect.value;
+  const studentId = studentInput.value;
+  const token = localStorage.getItem('token');
+
+  if (!classId || !studentId) {
+    showStatus('Select class and enter Student ID', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/attendance/manual-override', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ student_id: studentId, class_id: classId })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showStatus('Success! Attendance marked.', 'success');
+      studentInput.value = ''; // clear for next student
+    } else {
+      showStatus(data.message || 'Verification failed', 'error');
+    }
+  } catch (err) {
+    showStatus('Server unreachable', 'error');
+  }
+};
+
+function showStatus(msg, type) {
+  statusMsg.innerText = msg;
+  statusMsg.classList.remove('hidden', 'bg-red-500/20', 'text-red-500', 'bg-green-500/20', 'text-green-500');
+  
+  if (type === 'error') {
+    statusMsg.classList.add('bg-red-500/20', 'text-red-500');
+  } else {
+    statusMsg.classList.add('bg-green-500/20', 'text-green-500');
+  }
+}
+
+loadTeacherClasses();
+
+
+// ⚡ Apply mode instantly (before render)
+const cachedUser = JSON.parse(localStorage.getItem('user'));
+
+if (cachedUser?.mode === 'gaming') {
+  document.body.classList.add('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'LUMOS';
+} else if (cachedUser?.mode === 'official') {
+  document.body.classList.remove('gaming');
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) toggleBtn.innerText = 'NOX';
+}
+
+if (cachedUser?.mode === 'gaming') {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(1)';
+  });
+} else {
+  document.querySelectorAll('.scan-icon').forEach(icon => {
+    icon.style.filter = 'invert(0)';
+  });
+}
+
+/* CLICK SOUND */
+const clickSound = document.getElementById('clickSound');
+
+// Play click sound for all buttons and links
+document.querySelectorAll('button, a').forEach(el => {
+  el.addEventListener('click', () => {
+    clickSound.currentTime = 0; // rewind in case still playing
+    clickSound.play().catch(err => {
+      console.log("Click sound blocked by browser:", err);
+    });
+  });
+});
+
+/* THEME TOGGLE */
+const toggle = document.getElementById('themeToggle');
+toggle.onclick = () => {
+  document.body.classList.toggle('gaming');
+  toggle.innerText = document.body.classList.contains('gaming')
+    ? 'LUMOS'
+    : 'NOX';
+};
+
+/* REVEAL ANIMATION */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('show');
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+</script>
+</body>
+</html>
