@@ -212,7 +212,7 @@ function startDetection() {
     if (detection) {
       const resized = faceapi.resizeResults(detection, displaySize);
       faceapi.draw.drawDetections(canvas, resized);
-      faceapi.draw.drawFaceLandmarks(canvas, resized);
+      //faceapi.draw.drawFaceLandmarks(canvas, resized);
 
       const distance = faceapi.euclideanDistance(detection.descriptor, registeredDescriptor);
       if (distance > 0.6) {
@@ -230,9 +230,9 @@ function startDetection() {
       const distToRight = Math.abs(nose.x - rightEdge.x);
       const ratio = distToRight > 0.1 ? (distToLeft / distToRight) : 1.0;
 
-      // Thresholds: Turning Left (< 0.5), Turning Right (> 2.0)
-      if (challengeDirection === 'left' && ratio < 0.5) livenessVerified = true;
-      else if (challengeDirection === 'right' && ratio > 2.0) livenessVerified = true;
+      // Thresholds: Turning right (< 0.5), Turning left (> 2.0)
+      if (challengeDirection === 'right' && ratio < 0.5) livenessVerified = true;
+      else if (challengeDirection === 'left' && ratio > 2.0) livenessVerified = true;
 
       if (!livenessVerified) {
         status.innerText = `BIOMETRIC CHALLENGE: Turn head ${challengeDirection.toUpperCase()}...`;
