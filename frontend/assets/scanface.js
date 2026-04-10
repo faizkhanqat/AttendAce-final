@@ -204,7 +204,6 @@ function startDetection() {
     scoreThreshold: 0.9
   });
 
-  // Reduced interval to 200ms to catch quick blinks more reliably
   detectionInterval = setInterval(async () => {
     if (hasMarkedAttendance) return;
 
@@ -228,24 +227,26 @@ function startDetection() {
 
       if (distance > 0.6) {
         status.innerText = "This face doesn't match. Try again!";
-        // We don't clear interval here so the user can try adjusting their face
         return; 
       }
 
       // --- 👀 Step 2: Blink Detection (Liveness) ---
+      // We calculate landmarks and avgEAR INSIDE the same block where we use them
       const landmarks = detection.landmarks;
       const leftEAR = getEAR(landmarks.getLeftEye());
       const rightEAR = getEAR(landmarks.getRightEye());
-      const avgEAR = (leftEAR + rightEAR) / 2;
+      const avgEAR = (leftEAR + rightEAR) / 2; // Defined and used here
 
-      // Threshold: 0.22 is a standard "closed eye" ratio
-      if (avgEAR < 0.22) {
+      // ADD THE DEBUG LINE HERE:
+      console.log(`[BIOMETRIC_LOG] EAR: ${avgEAR.toFixed(3)} | Liveness: ${blinkCaptured}`);
+
+      if (avgEAR < 0.25) { // Loosened threshold to 0.25 for better detection
         blinkCaptured = true;
       }
 
       if (!blinkCaptured) {
         status.innerText = 'Blink your eyes to verify liveness...';
-        return; // Don't proceed to redirect until they blink
+        return; 
       }
 
       // --- ✅ Step 3: Success & Redirect ---
