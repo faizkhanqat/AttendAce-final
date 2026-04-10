@@ -200,8 +200,8 @@ function startDetection() {
   faceapi.matchDimensions(canvas, displaySize);
 
   const options = new faceapi.TinyFaceDetectorOptions({
-    inputSize: 320,
-    scoreThreshold: 0.9
+    inputSize: 416,
+    scoreThreshold: 0.5
   });
 
   detectionInterval = setInterval(async () => {
@@ -218,6 +218,9 @@ function startDetection() {
     if (detection) {
       const resized = faceapi.resizeResults(detection, displaySize);
       faceapi.draw.drawDetections(canvas, resized);
+
+      // ADD THIS LINE TO DEBUG:
+  faceapi.draw.drawFaceLandmarks(canvas, resized);
 
       // --- 🔐 Step 1: Face Match Check ---
       const distance = faceapi.euclideanDistance(
@@ -240,7 +243,7 @@ function startDetection() {
       // ADD THE DEBUG LINE HERE:
       console.log(`[BIOMETRIC_LOG] EAR: ${avgEAR.toFixed(3)} | Liveness: ${blinkCaptured}`);
 
-      if (avgEAR < 0.25) { // Loosened threshold to 0.25 for better detection
+      if (avgEAR < 0.28) { // Loosened threshold to 0.28 for better detection
         blinkCaptured = true;
       }
 
