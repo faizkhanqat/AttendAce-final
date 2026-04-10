@@ -30,4 +30,6 @@ router.get('/analytics/class/:class_id/csv', authenticateToken, authorizeRole('t
 
 router.get('/class/:id', verifyToken, attendanceController.getClassAttendancePreview);
 
+router.post('/manual-override', authenticateToken, authorizeRole('teacher'), attendanceController.manualOverride);
+
 module.exports = router;
