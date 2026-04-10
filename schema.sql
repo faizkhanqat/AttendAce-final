@@ -25,6 +25,8 @@ CREATE TABLE "users" (
   UNIQUE KEY "aviation_id" ("aviation_id")
 )
 
+--mj check
+
 CREATE TABLE "active_classes" (
   "id" int NOT NULL AUTO_INCREMENT,
   "class_id" int NOT NULL,
