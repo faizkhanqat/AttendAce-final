@@ -189,97 +189,64 @@ async function markFaceAttendance(class_id) {
 }
 
 // ---------- FACE DETECTION ----------
-// Add this variable above startDetection to track the blink state
-let blinkCaptured = false;
+let livenessVerified = false;
+let challengeDirection = null; // 'left' or 'right'
 
 function startDetection() {
   const container = document.getElementById('video-container');
   const canvas = document.getElementById('overlay');
-
   const displaySize = { width: container.clientWidth, height: container.clientHeight };
   faceapi.matchDimensions(canvas, displaySize);
 
-  const options = new faceapi.TinyFaceDetectorOptions({
-    inputSize: 416,
-    scoreThreshold: 0.5
-  });
+  challengeDirection = Math.random() > 0.5 ? 'left' : 'right';
+
+  const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 });
 
   detectionInterval = setInterval(async () => {
     if (hasMarkedAttendance) return;
 
-    const detection = await faceapi
-      .detectSingleFace(video, options)
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-    
+    const detection = await faceapi.detectSingleFace(video, options).withFaceLandmarks().withFaceDescriptor();
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detection) {
       const resized = faceapi.resizeResults(detection, displaySize);
       faceapi.draw.drawDetections(canvas, resized);
+      faceapi.draw.drawFaceLandmarks(canvas, resized);
 
-      // ADD THIS LINE TO DEBUG:
-  faceapi.draw.drawFaceLandmarks(canvas, resized);
-
-      // --- 🔐 Step 1: Face Match Check ---
-      const distance = faceapi.euclideanDistance(
-        detection.descriptor,
-        registeredDescriptor
-      );
-
+      const distance = faceapi.euclideanDistance(detection.descriptor, registeredDescriptor);
       if (distance > 0.6) {
-        status.innerText = "This face doesn't match. Try again!";
-        return; 
-      }
-
-      // --- 👀 Step 2: Blink Detection (Liveness) ---
-      // We calculate landmarks and avgEAR INSIDE the same block where we use them
-      const landmarks = detection.landmarks;
-      const leftEAR = getEAR(landmarks.getLeftEye());
-      const rightEAR = getEAR(landmarks.getRightEye());
-      const avgEAR = (leftEAR + rightEAR) / 2; // Defined and used here
-
-      // ADD THE DEBUG LINE HERE:
-      console.log(`[BIOMETRIC_LOG] EAR: ${avgEAR.toFixed(3)} | Liveness: ${blinkCaptured}`);
-
-      if (avgEAR < 0.28) { // Loosened threshold to 0.28 for better detection
-        blinkCaptured = true;
-      }
-
-      if (!blinkCaptured) {
-        status.innerText = 'Blink your eyes to verify liveness...';
-        return; 
-      }
-
-      // --- ✅ Step 3: Success & Redirect ---
-      status.innerText = 'Liveness verified! Preparing QR scanner...';
-
-      const activeClass = await getActiveClass();
-      if (!activeClass) {
-        status.innerText = "⏳ No active class found.";
-        clearInterval(detectionInterval);
+        status.innerText = "Identity Mismatch. Verification Halted.";
         return;
       }
 
+      const landmarks = detection.landmarks;
+      const nose = landmarks.getNose()[0]; 
+      const jaw = landmarks.getJawOutline();
+      const leftEdge = jaw[0];  
+      const rightEdge = jaw[16]; 
+
+      const distToLeft = Math.abs(nose.x - leftEdge.x);
+      const distToRight = Math.abs(nose.x - rightEdge.x);
+      const ratio = distToRight > 0.1 ? (distToLeft / distToRight) : 1.0;
+
+      // Thresholds: Turning Left (< 0.5), Turning Right (> 2.0)
+      if (challengeDirection === 'left' && ratio < 0.5) livenessVerified = true;
+      else if (challengeDirection === 'right' && ratio > 2.0) livenessVerified = true;
+
+      if (!livenessVerified) {
+        status.innerText = `BIOMETRIC CHALLENGE: Turn head ${challengeDirection.toUpperCase()}...`;
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      status.innerText = 'Liveness Confirmed. Initializing QR Handshake...';
+      const activeClass = await getActiveClass();
+      
       clearInterval(detectionInterval);
-      window.location.href = `scanqr.html?faceVerified=true&class_id=${activeClass.class_id}`;
+      window.location.href = `scanqr.html?faceVerified=true&class_id=${activeClass ? activeClass.class_id : ''}`;
     } else {
-      status.innerText = 'No face detected...';
-    }
-  }, 200); 
+    // If liveness was partially started but face is lost, guide them back
+    status.innerText = livenessVerified ? 'Processing...' : 'Face lost. Please center your face.';
 }
-
-
-function getDistance(p1, p2) {
-  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-}
-
-function getEAR(eye) {
-  // Vertical distances between eyelids
-  const v1 = getDistance(eye[1], eye[5]);
-  const v2 = getDistance(eye[2], eye[4]);
-  // Horizontal distance between eye corners
-  const h = getDistance(eye[0], eye[3]);
-  return (v1 + v2) / (2 * h);
+  }, 200);
 }
