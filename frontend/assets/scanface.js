@@ -189,6 +189,9 @@ async function markFaceAttendance(class_id) {
 }
 
 // ---------- FACE DETECTION ----------
+// Add this variable above startDetection to track the blink state
+let blinkCaptured = false;
+
 function startDetection() {
   const container = document.getElementById('video-container');
   const canvas = document.getElementById('overlay');
@@ -201,48 +204,78 @@ function startDetection() {
     scoreThreshold: 0.9
   });
 
+  // Reduced interval to 200ms to catch quick blinks more reliably
   detectionInterval = setInterval(async () => {
     if (hasMarkedAttendance) return;
 
-const detection = await faceapi
-  .detectSingleFace(video, options)
-  .withFaceLandmarks()
-  .withFaceDescriptor();
-      const ctx = canvas.getContext('2d');
+    const detection = await faceapi
+      .detectSingleFace(video, options)
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+    
+    const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detection) {
-  const resized = faceapi.resizeResults(detection, displaySize);
-  faceapi.draw.drawDetections(canvas, resized);
+      const resized = faceapi.resizeResults(detection, displaySize);
+      faceapi.draw.drawDetections(canvas, resized);
 
-  // 🔐 FACE MATCH CHECK (ADD HERE)
-  const distance = faceapi.euclideanDistance(
-    detection.descriptor,
-    registeredDescriptor
-  );
+      // --- 🔐 Step 1: Face Match Check ---
+      const distance = faceapi.euclideanDistance(
+        detection.descriptor,
+        registeredDescriptor
+      );
 
-  if (distance > 0.6) {
-    status.innerText = "This face doesn't match the registered one. If it’s really you, give it another try!";
-    clearInterval(detectionInterval);
-    return;
-  }
+      if (distance > 0.6) {
+        status.innerText = "This face doesn't match. Try again!";
+        // We don't clear interval here so the user can try adjusting their face
+        return; 
+      }
 
-status.innerText = 'Face verified! Go ahead and scan your QR to mark attendance.';
+      // --- 👀 Step 2: Blink Detection (Liveness) ---
+      const landmarks = detection.landmarks;
+      const leftEAR = getEAR(landmarks.getLeftEye());
+      const rightEAR = getEAR(landmarks.getRightEye());
+      const avgEAR = (leftEAR + rightEAR) / 2;
 
-const activeClass = await getActiveClass();
-if (!activeClass) {
-  status.innerText = "⏳ Looks like there’s no active class at the moment.";
-  clearInterval(detectionInterval);
-  return;
-}
+      // Threshold: 0.22 is a standard "closed eye" ratio
+      if (avgEAR < 0.22) {
+        blinkCaptured = true;
+      }
 
-// Stop detection but **do NOT mark attendance**
-clearInterval(detectionInterval);
+      if (!blinkCaptured) {
+        status.innerText = 'Blink your eyes to verify liveness...';
+        return; // Don't proceed to redirect until they blink
+      }
 
-// Redirect to scan QR page with faceVerified flag
-window.location.href = `scanqr.html?faceVerified=true&class_id=${activeClass.class_id}`;
-} else {
+      // --- ✅ Step 3: Success & Redirect ---
+      status.innerText = 'Liveness verified! Preparing QR scanner...';
+
+      const activeClass = await getActiveClass();
+      if (!activeClass) {
+        status.innerText = "⏳ No active class found.";
+        clearInterval(detectionInterval);
+        return;
+      }
+
+      clearInterval(detectionInterval);
+      window.location.href = `scanqr.html?faceVerified=true&class_id=${activeClass.class_id}`;
+    } else {
       status.innerText = 'No face detected...';
     }
-  }, 400);
+  }, 200); 
+}
+
+
+function getDistance(p1, p2) {
+  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+}
+
+function getEAR(eye) {
+  // Vertical distances between eyelids
+  const v1 = getDistance(eye[1], eye[5]);
+  const v2 = getDistance(eye[2], eye[4]);
+  // Horizontal distance between eye corners
+  const h = getDistance(eye[0], eye[3]);
+  return (v1 + v2) / (2 * h);
 }
