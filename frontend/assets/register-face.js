@@ -177,8 +177,12 @@ async function checkFaceStatus() {
   : null;
 
     if (data.registered) {
-  faceStatusBox.innerText = 'You already have a face registered. Click on "Update Face" to register a new one.';
-  faceStatusBox.style.backgroundColor = '#5f8b6e';
+  faceStatusBox.className = "status-box status-success";
+
+faceStatusBox.innerHTML = `
+  <span class="icon">✅</span>
+  You already have a face registered. Click <b>"Update Face"</b> to register a new one.
+`;
 
   // show UPDATE button only
   document.getElementById('registerBtn').style.display = 'inline-block';
