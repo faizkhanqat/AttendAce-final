@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { Parser } = require('json2csv');
+const { getDistanceMeters } = require('../utils/haversine');
 
 /**
  * Mark attendance for a student using a QR token
@@ -8,7 +9,7 @@ const { Parser } = require('json2csv');
 exports.markAttendance = async (req, res) => {
   try {
     const studentId = req.user.id;
-    const { class_id, token } = req.body;
+    const { class_id, token, student_lat, student_lng } = req.body;
 
     if (!class_id || !token) 
       return res.status(400).json({ message: 'class_id and token are required' });
@@ -20,6 +21,25 @@ exports.markAttendance = async (req, res) => {
     );
     if (qrRows.length === 0)
       return res.status(400).json({ message: 'Invalid or expired QR' });
+
+    // Fetch active class coords for geofencing
+    const [activeRows] = await pool.query(
+      'SELECT teacher_lat, teacher_lng FROM active_classes WHERE class_id = ? AND expires_at >= NOW() LIMIT 1',
+      [class_id]
+    );
+
+    if (activeRows.length > 0) {
+      const { teacher_lat, teacher_lng } = activeRows[0];
+      if (teacher_lat && teacher_lng) {
+        if (!student_lat || !student_lng) {
+          return res.status(403).json({ message: 'Location access is required to mark attendance.' });
+        }
+        const distance = getDistanceMeters(teacher_lat, teacher_lng, student_lat, student_lng);
+        if (distance > 30) {
+          return res.status(403).json({ message: 'You must be within 30 meters of the classroom.' });
+        }
+      }
+    }
 
     // Check enrollment
     const [enrollRows] = await pool.query(
@@ -69,7 +89,7 @@ exports.markAttendance = async (req, res) => {
 exports.faceMarkAttendance = async (req, res) => {
   try {
     const studentId = req.user.id;
-    const { class_id } = req.body;
+    const { class_id, student_lat, student_lng } = req.body;
 
     // 🔐 Check if face is registered
 // 🔐 Check if face is registered
@@ -98,6 +118,18 @@ if (!rows.length || !rows[0].face_encoding) {
 
     if (activeRows.length === 0)
       return res.status(403).json({ message: 'Class is not active right now' });
+
+    // GPS Geofence validation
+    const { teacher_lat, teacher_lng } = activeRows[0];
+    if (teacher_lat && teacher_lng) {
+      if (!student_lat || !student_lng) {
+        return res.status(403).json({ message: 'Location access is required to mark attendance.' });
+      }
+      const distance = getDistanceMeters(teacher_lat, teacher_lng, student_lat, student_lng);
+      if (distance > 30) {
+        return res.status(403).json({ message: 'You must be within 30 meters of the classroom.' });
+      }
+    }
 
     // Check enrollment
     const [enrollRows] = await pool.query(

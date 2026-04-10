@@ -28,13 +28,32 @@ async function getActiveClass() {
 // --- Mark attendance via QR ---
 async function markAttendance(class_id, qrToken) {
   try {
+    let student_lat = null;
+    let student_lng = null;
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
+      });
+
+      if (position.coords.accuracy > 50) {
+        alert('Your GPS signal is weak. Attempting verification anyway...');
+      }
+
+      student_lat = position.coords.latitude;
+      student_lng = position.coords.longitude;
+    } catch (locErr) {
+      alert('Location access is required to mark attendance.');
+      return;
+    }
+
     const res = await fetch('/api/attendance/mark', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token 
       },
-      body: JSON.stringify({ class_id, token: qrToken })
+      body: JSON.stringify({ class_id, token: qrToken, student_lat, student_lng })
     });
 
     if (!res.ok) {

@@ -183,7 +183,7 @@ if (classRows.length === 0)
 exports.activateClass = async (req, res) => {
   try {
     const teacherId = req.user.id;
-    const { class_id, minutes } = req.body;
+    const { class_id, minutes, lat, lng } = req.body;
 
     if (!class_id)
       return res.status(400).json({ message: 'class_id is required' });
@@ -235,8 +235,8 @@ if (shouldIncrement) {
 
 // Always activate class for the requested minutes
 await pool.query(
-  'INSERT INTO active_classes (class_id, teacher_id, expires_at, conducted_on) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at)',
-  [class_id, teacherId, expiresAt, today]
+  'INSERT INTO active_classes (class_id, teacher_id, expires_at, conducted_on, teacher_lat, teacher_lng) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at), teacher_lat = VALUES(teacher_lat), teacher_lng = VALUES(teacher_lng)',
+  [class_id, teacherId, expiresAt, today, lat || null, lng || null]
 );
 
     res.json({
