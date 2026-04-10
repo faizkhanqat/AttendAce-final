@@ -35,8 +35,8 @@ exports.markAttendance = async (req, res) => {
           return res.status(403).json({ message: 'Location access is required to mark attendance.' });
         }
         const distance = getDistanceMeters(teacher_lat, teacher_lng, student_lat, student_lng);
-        if (distance > 30) {
-          return res.status(403).json({ message: 'You must be within 30 meters of the classroom.' });
+        if (distance > 100) {
+          return res.status(403).json({ message: 'You must be within 100 meters of the classroom.' });
         }
       }
     }
@@ -126,8 +126,8 @@ if (!rows.length || !rows[0].face_encoding) {
         return res.status(403).json({ message: 'Location access is required to mark attendance.' });
       }
       const distance = getDistanceMeters(teacher_lat, teacher_lng, student_lat, student_lng);
-      if (distance > 30) {
-        return res.status(403).json({ message: 'You must be within 30 meters of the classroom.' });
+      if (distance > 100) {
+        return res.status(403).json({ message: 'You must be within 100 meters of the classroom.' });
       }
     }
 
